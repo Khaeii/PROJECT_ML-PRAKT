@@ -39,8 +39,8 @@ X_test = scaler.transform(X_test)
 # One-hot encode target
 n_classes = len(np.unique(y_raw))
 y_train = to_categorical(y_train_raw, n_classes)
-y_val = to_categorical(y_val_raw,   n_classes)
-y_test = to_categorical(y_test_raw,  n_classes)
+y_val = to_categorical(y_val_raw, n_classes)
+y_test = to_categorical(y_test_raw, n_classes)
 
 # Arsitektur model 
 def build_model2(input_dim, n_classes):

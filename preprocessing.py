@@ -92,7 +92,7 @@ df_clean = pd.concat([df_num, df_cat, y.rename("Weather Type")], axis=1)
 
 df_clean.to_csv(OUTPUT_CSV, index=False)
 print(df_clean.head())
-
+    
 with open(ENCODER_PKL, "wb") as f:
     pickle.dump({"target": encoder_target, "cat_cols": cat_cols}, f)
 print(f"\nEncoder disimpan: {ENCODER_PKL}")

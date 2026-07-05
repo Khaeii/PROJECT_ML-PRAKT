@@ -6,14 +6,7 @@ import seaborn as sns
 import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import (
-    classification_report,
-    confusion_matrix,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score
-)
+from sklearn.metrics import (classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score)
 
 df = pd.read_csv("dataset/weather_clean.csv")
 X = df.drop("Weather Type", axis=1)
@@ -74,8 +67,7 @@ for name, model in models.items():
     print(f"Recall   : {rec:.4f}")
     print(f"F1-Score : {f1:.4f}")
     print("\nClassification Report:")
-    print(classification_report(y_true, pred_class,
-                                target_names=class_names, zero_division=0))
+    print(classification_report(y_true, pred_class, target_names=class_names, zero_division=0))
 
     # Confusion Matrix
     cm = confusion_matrix(y_true, pred_class)
