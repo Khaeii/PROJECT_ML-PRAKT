@@ -176,6 +176,19 @@ with open("history_model1.pkl", "wb") as f:
 with open("cv_scores_model1.pkl", "wb") as f:
     pickle.dump(cv_scores, f)
 
+
+try:
+    with open("test_metrics.pkl", "rb") as f:
+        metrics = pickle.load(f)
+except FileNotFoundError:
+    metrics = {}
+
+metrics["model1_acc"] = float(acc1)
+
+with open("test_metrics.pkl", "wb") as f:
+    pickle.dump(metrics, f)
+
+print(f"\ntest_metrics.pkl diupdate → model1_acc = {acc1:.4f}")
 print("\n" + "="*50)
 print(f"Test Accuracy : {acc1:.4f}")
 print(f"CV Mean       : {np.mean(cv_scores):.4f} ± {np.std(cv_scores):.4f}")
