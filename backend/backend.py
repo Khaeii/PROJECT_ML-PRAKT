@@ -1,6 +1,5 @@
 import os, pickle
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -11,13 +10,6 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, validator
 
-# ─────────────────────────────────────────────────────────
-# BASE PATH
-# Dijalankan dari ROOT → uvicorn backend.backend:app
-# __file__ = PROJECT_ML-PRAKT-MAIN/backend/backend.py
-# .parent  = PROJECT_ML-PRAKT-MAIN/backend/
-# .parent  = PROJECT_ML-PRAKT-MAIN/   ← ROOT, tempat model ada
-# ─────────────────────────────────────────────────────────
 BASE = Path(__file__).resolve().parent.parent
 print("=" * 55)
 print(f"  BASE dir : {BASE}")
@@ -26,32 +18,29 @@ print("=" * 55)
 def _p(name):
     return str(BASE / name)
 
-# ─────────────────────────────────────────────────────────
-# LOAD ARTEFAK
-# ─────────────────────────────────────────────────────────
 def _load_model(path):
     try:
         m = tf.keras.models.load_model(path)
-        print(f"  ✅  {Path(path).name}")
+        print(f"{Path(path).name}")
         return m
     except Exception as e:
-        print(f"  ❌  {Path(path).name}  →  {e}")
+        print(f"{Path(path).name}  →  {e}")
         return None
 
 def _load_pkl(path, label):
     try:
         with open(path, "rb") as f:
             obj = pickle.load(f)
-        print(f"  ✅  {label}")
+        print(f"{label}")
         return obj
     except Exception as e:
-        print(f"  ❌  {label}  →  {e}")
+        print(f"{label}  →  {e}")
         return None
 
 model1       = _load_model(_p("weather_model1.keras"))
 model2       = _load_model(_p("weather_model2.keras"))
-scaler       = _load_pkl(_p("scaler.pkl"),       "scaler.pkl")
-enc_data     = _load_pkl(_p("encoders.pkl"),     "encoders.pkl")
+scaler       = _load_pkl(_p("scaler.pkl"), "scaler.pkl")
+enc_data     = _load_pkl(_p("encoders.pkl"), "encoders.pkl")
 TEST_METRICS = _load_pkl(_p("test_metrics.pkl"), "test_metrics.pkl") or {}
 
 label_encoder = enc_data["target"] if enc_data else None
@@ -60,31 +49,19 @@ CLASS_NAMES = (
     if label_encoder else ["Cloudy", "Rainy", "Snowy", "Sunny"]
 )
 
-# Kolom fitur — urutan HARUS sama dengan training
 try:
     FEATURE_COLS = list(scaler.feature_names_in_)
-    print(f"  ✅  Feature cols dari scaler: {len(FEATURE_COLS)} fitur")
+    print(f"Feature cols dari scaler: {len(FEATURE_COLS)} fitur")
 except Exception:
-    FEATURE_COLS = [
-        "Temperature", "Humidity", "Wind Speed",
-        "Precipitation (%)", "Atmospheric Pressure",
-        "UV Index", "Visibility (km)",
-        "Cloud Cover_clear", "Cloud Cover_cloudy",
-        "Cloud Cover_overcast", "Cloud Cover_partly cloudy",
-        "Season_Autumn", "Season_Spring",
-        "Season_Summer", "Season_Winter",
-        "Location_coastal", "Location_inland", "Location_mountain",
-    ]
-    print(f"  ⚠️  Fallback FEATURE_COLS: {len(FEATURE_COLS)} fitur")
+    FEATURE_COLS = ["Temperature", "Humidity", "Wind Speed", "Precipitation (%)", "Atmospheric Pressure", "UV Index", "Visibility (km)", "Cloud Cover_clear", "Cloud Cover_cloudy", "Cloud Cover_overcast", "Cloud Cover_partly cloudy", "Season_Autumn", "Season_Spring", "Season_Summer", "Season_Winter", "Location_coastal", "Location_inland", "Location_mountain",]
+    print(f"Fallback FEATURE_COLS: {len(FEATURE_COLS)} fitur")
 
-print(f"  Kelas  : {CLASS_NAMES}")
-print(f"  M1 acc : {TEST_METRICS.get('model1_acc', 0)*100:.2f}%")
-print(f"  M2 acc : {TEST_METRICS.get('model2_acc', 0)*100:.2f}%")
+print(f"Kelas  : {CLASS_NAMES}")
+print(f"M1 acc : {TEST_METRICS.get('model1_acc', 0)*100:.2f}%")
+print(f"M2 acc : {TEST_METRICS.get('model2_acc', 0)*100:.2f}%")
 print("=" * 55 + "\n")
 
-# ─────────────────────────────────────────────────────────
-# APP
-# ─────────────────────────────────────────────────────────
+# App
 app = FastAPI(title="Weather Classification API", version="2.1.0")
 
 app.add_middleware(
@@ -94,14 +71,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve UI — akses via http://localhost:8000/ui/index.html
 UI_DIR = BASE / "ui"
 UI_DIR.mkdir(exist_ok=True)
 app.mount("/ui", StaticFiles(directory=str(UI_DIR), html=True), name="ui")
 
-# ─────────────────────────────────────────────────────────
-# ERROR HANDLER — tampilkan validasi error yang jelas
-# ─────────────────────────────────────────────────────────
 @app.exception_handler(RequestValidationError)
 async def validation_error_handler(request: Request, exc: RequestValidationError):
     errors = []
@@ -113,41 +86,30 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
         content={"error": "Input tidak valid", "detail": errors}
     )
 
-# ─────────────────────────────────────────────────────────
-# SCHEMA
-# ─────────────────────────────────────────────────────────
 class WeatherInput(BaseModel):
-    temperature:          float = Field(..., ge=-20,  le=55)
-    humidity:             float = Field(..., ge=0,    le=100)
-    wind_speed:           float = Field(..., ge=0,    le=150)
-    precipitation:        float = Field(..., ge=0,    le=100)
+    temperature: float = Field(..., ge=-20, le=55)
+    humidity: float = Field(..., ge=0, le=100)
+    wind_speed: float = Field(..., ge=0, le=150)
+    precipitation: float = Field(..., ge=0, le=100)
     atmospheric_pressure: float = Field(1013.0, ge=900, le=1050)
-    uv_index:             float = Field(..., ge=0,    le=15)
-    visibility_km:        float = Field(..., ge=0,    le=50)
-    cloud_cover:          str   = Field(...)
-    season:               str   = Field(...)
-    location:             str   = Field(...)
-    model_choice:         str   = Field("best")
+    uv_index: float = Field(..., ge=0, le=15)
+    visibility_km: float = Field(..., ge=0, le=50)
+    cloud_cover: str = Field(...)
+    season: str = Field(...)
+    location: str = Field(...)
+    model_choice:str = Field("best")
 
-    # Validator — toleran terhadap tipe dan case dari HTML slider/select
     @validator("uv_index", pre=True)
     def parse_uv(cls, v): return round(float(v))
-
     @validator("cloud_cover", pre=True)
     def norm_cloud(cls, v): return str(v).strip().lower()
-
     @validator("season", pre=True)
     def norm_season(cls, v): return str(v).strip().capitalize()
-
     @validator("location", pre=True)
     def norm_location(cls, v): return str(v).strip().lower()
-
     @validator("model_choice", pre=True)
     def norm_model(cls, v): return str(v).strip().lower()
 
-# ─────────────────────────────────────────────────────────
-# HELPER — build fitur
-# ─────────────────────────────────────────────────────────
 def build_features(data: WeatherInput) -> np.ndarray:
     row = {
         "Temperature":          float(data.temperature),
@@ -172,9 +134,6 @@ def build_features(data: WeatherInput) -> np.ndarray:
     df = df[FEATURE_COLS]
     return scaler.transform(df.values).astype(np.float32)
 
-# ─────────────────────────────────────────────────────────
-# ENDPOINTS
-# ─────────────────────────────────────────────────────────
 @app.get("/")
 def root():
     return {
@@ -207,8 +166,6 @@ def predict(data: WeatherInput):
             status_code=503,
             detail=(
                 "Model belum di-load. "
-                "Cek apakah weather_model1.keras, weather_model2.keras, "
-                "dan scaler.pkl ada di folder root PROJECT_ML-PRAKT-MAIN/"
             )
         )
 

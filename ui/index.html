@@ -292,19 +292,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ───────────────────────────────────────
-// CONFIG
-// ───────────────────────────────────────
-// Ganti IP ini jika backend dijalankan di komputer lain dalam satu jaringan
-// Contoh: const API = "http://192.168.1.5:8000";
+
 const API = "http://127.0.0.1:8000";
 
 const ICONS = {Sunny:"☀️", Cloudy:"☁️", Rainy:"🌧️", Snowy:"❄️"};
 let histList = [];
 
-// ───────────────────────────────────────
-// BIND SLIDER → label
-// ───────────────────────────────────────
 function bindSlider(id, suffix, labelId){
   const el = document.getElementById(id);
   const lb = document.getElementById(labelId);
@@ -320,9 +313,7 @@ bindSlider("uv",    "",     "v_uv");
 bindSlider("vis",   "km",   "v_vis");
 bindSlider("pres",  "hPa",  "v_pres");
 
-// ───────────────────────────────────────
-// CEK KONEKSI BACKEND saat halaman dibuka
-// ───────────────────────────────────────
+
 async function checkConn(){
   const dot = document.getElementById("connDot");
   const txt = document.getElementById("connTxt");
@@ -340,11 +331,8 @@ async function checkConn(){
   }
 }
 checkConn();
-setInterval(checkConn, 10000);   // cek ulang tiap 10 detik
+setInterval(checkConn, 10000);
 
-// ───────────────────────────────────────
-// TOAST HELPER
-// ───────────────────────────────────────
 function showToast(msg){
   const t = document.getElementById("toast");
   t.textContent = msg;
@@ -352,9 +340,6 @@ function showToast(msg){
   setTimeout(() => t.classList.remove("show"), 4000);
 }
 
-// ───────────────────────────────────────
-// MAIN: KIRIM KE BACKEND
-// ───────────────────────────────────────
 async function runPredict(){
   const btn  = document.getElementById("predictBtn");
   const spin = document.getElementById("spin");
@@ -365,17 +350,17 @@ async function runPredict(){
   txt.textContent = "Menganalisis…";
 
   const payload = {
-    temperature:          +document.getElementById("temp").value,
-    humidity:             +document.getElementById("hum").value,
-    wind_speed:           +document.getElementById("wind").value,
-    precipitation:        +document.getElementById("prec").value,
+    temperature: +document.getElementById("temp").value,
+    humidity: +document.getElementById("hum").value,
+    wind_speed: +document.getElementById("wind").value,
+    precipitation: +document.getElementById("prec").value,
     atmospheric_pressure: +document.getElementById("pres").value,
-    uv_index:             +document.getElementById("uv").value,
-    visibility_km:        +document.getElementById("vis").value,
-    cloud_cover:          document.getElementById("cloud").value,
-    season:               document.getElementById("season").value,
-    location:             document.getElementById("location").value,
-    model_choice:         document.getElementById("modelSel").value,
+    uv_index: +document.getElementById("uv").value,
+    visibility_km: +document.getElementById("vis").value,
+    cloud_cover: document.getElementById("cloud").value,
+    season: document.getElementById("season").value,
+    location: document.getElementById("location").value,
+    model_choice: document.getElementById("modelSel").value,
   };
 
   try {
@@ -410,9 +395,6 @@ async function runPredict(){
   }
 }
 
-// ───────────────────────────────────────
-// TAMPILKAN HASIL
-// ───────────────────────────────────────
 function showResult(r){
   // Banner atas
   const sky = document.getElementById("skyBanner");
@@ -422,7 +404,6 @@ function showResult(r){
   document.getElementById("skyConf").textContent =
     `Confidence ${r.confidence.toFixed ? r.confidence.toFixed(1) : r.confidence}%  ·  ${r.model_used.toUpperCase()}`;
 
-  // Probability bars — diurutkan dari tertinggi
   const wrap = document.getElementById("barsWrap");
   wrap.innerHTML = "";
   const sorted = Object.entries(r.probabilities).sort((a,b)=>b[1]-a[1]);
@@ -473,9 +454,6 @@ function showResult(r){
   renderHistory();
 }
 
-// ───────────────────────────────────────
-// HISTORY
-// ───────────────────────────────────────
 function renderHistory(){
   const el = document.getElementById("historyList");
   if(histList.length === 0){
